@@ -3,10 +3,15 @@ from django.contrib import admin
 from .models import (
     AsignaturaGrupo,
     CampanaEvaluacion,
+    Encuesta,
+    EncuestaPregunta,
+    MiembroClase,
+    ParticipacionEncuesta,
     Pregunta,
     Profesor,
     RegistroVoto,
     Respuesta,
+    RespuestaEncuesta,
     UserProfile,
 )
 
@@ -150,6 +155,45 @@ class RespuestaAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+
+@admin.register(MiembroClase)
+class MiembroClaseAdmin(admin.ModelAdmin):
+    list_display = ("user", "asignatura_grupo", "fecha_inscripcion")
+    list_filter = ("asignatura_grupo__curso",)
+    search_fields = ("user__username", "asignatura_grupo__nombre")
+    list_select_related = ("user", "asignatura_grupo", "asignatura_grupo__profesor")
+
+
+@admin.register(Encuesta)
+class EncuestaAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "asignatura_grupo", "profesor", "fecha_inicio", "fecha_fin", "activa")
+    list_filter = ("activa", "asignatura_grupo__curso")
+    search_fields = ("nombre", "asignatura_grupo__nombre")
+    list_select_related = ("asignatura_grupo", "profesor")
+
+
+@admin.register(EncuestaPregunta)
+class EncuestaPreguntaAdmin(admin.ModelAdmin):
+    list_display = ("orden", "encuesta", "texto")
+    list_filter = ("encuesta",)
+    search_fields = ("texto",)
+    ordering = ("encuesta", "orden")
+
+
+@admin.register(RespuestaEncuesta)
+class RespuestaEncuestaAdmin(admin.ModelAdmin):
+    list_display = ("encuesta", "pregunta", "valor")
+    list_filter = ("encuesta",)
+    list_select_related = ("encuesta", "pregunta")
+
+
+@admin.register(ParticipacionEncuesta)
+class ParticipacionEncuestaAdmin(admin.ModelAdmin):
+    list_display = ("user", "encuesta", "fecha")
+    list_filter = ("encuesta",)
+    search_fields = ("user__username", "encuesta__nombre")
+    list_select_related = ("user", "encuesta")
 
 
 @admin.register(RegistroVoto)

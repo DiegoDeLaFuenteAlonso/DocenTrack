@@ -13,6 +13,9 @@ from django.core.management.base import BaseCommand  # type: ignore
 from evaluations.models import (  # type: ignore
     AsignaturaGrupo,
     CampanaEvaluacion,
+    Encuesta,
+    EncuestaPregunta,
+    MiembroClase,
     Pregunta,
     Profesor,
     RegistroVoto,
@@ -107,6 +110,37 @@ class Command(BaseCommand):
             UserProfile.objects.get_or_create(user=user, defaults={'role': 'ALUMNO'})
             alumnos.append(user)
 
+        today = date.today()
+
+        # ── Matrícula en clase (nuevo flujo API) ──
+        for alumno_user in alumnos[:5]:
+            MiembroClase.objects.get_or_create(
+                user=alumno_user,
+                asignatura_grupo=asignaturas[0],
+            )
+
+        # ── Encuesta de clase con preguntas propias ──
+        enc_clase, _ = Encuesta.objects.get_or_create(
+            asignatura_grupo=asignaturas[0],
+            nombre='Encuesta de satisfacción (clase)',
+            defaults={
+                'profesor': asignaturas[0].profesor,
+                'fecha_inicio': today - timedelta(days=3),
+                'fecha_fin': today + timedelta(days=14),
+                'activa': True,
+            },
+        )
+        items_enc = [
+            '¿El contenido de la asignatura es claro?',
+            '¿El ritmo de la clase es adecuado?',
+        ]
+        for idx, texto in enumerate(items_enc, 1):
+            EncuestaPregunta.objects.get_or_create(
+                encuesta=enc_clase,
+                orden=idx,
+                defaults={'texto': texto},
+            )
+
         # ── Preguntas ─────────────────────────────
         preguntas_textos = [
             'El/la profesor/a explica con claridad los contenidos.',
@@ -127,7 +161,6 @@ class Command(BaseCommand):
             preguntas.append(preg)
 
         # ── Campañas ──────────────────────────────
-        today = date.today()
         campanas_data = [
             {
                 'nombre': 'Evaluación 1er Trimestre 2024-2025',
@@ -189,6 +222,7 @@ class Command(BaseCommand):
             f'  Profesores: profesor1, profesor2 / profesor123\n'
             f'  Alumnos: alumno1..alumno10 / alumno123\n'
             f'  Campañas: {len(campanas)} (1 activa)\n'
-            f'  Preguntas: {len(preguntas)}\n'
-            f'  Asignaturas: {len(asignaturas)}'
+            f'  Preguntas globales: {len(preguntas)}\n'
+            f'  Asignaturas: {len(asignaturas)} (código invitación en API para profesor)\n'
+            f'  Encuesta de clase ejemplo: {enc_clase.nombre!r} en {asignaturas[0]}'
         ))

@@ -23,7 +23,7 @@ const LoginPage = () => {
     setIsSubmitting(true);
     const success = await login(username, password);
     if (success) {
-      navigate('/');
+      navigate('/app');
     } else {
       setError('Credenciales inválidas. Inténtelo de nuevo.');
       setIsSubmitting(false);
