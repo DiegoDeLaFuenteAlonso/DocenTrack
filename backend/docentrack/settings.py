@@ -23,6 +23,10 @@ def _split_hosts(value: str) -> list[str]:
 
 
 ALLOWED_HOSTS = _split_hosts(os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
 # Túneles (localhost.run → *.lhr.life, localtunnel, etc.): coinciden como subdominio
 if DEBUG:
     for suffix in ('.lhr.life', '.loca.lt', '.ngrok-free.app', '.ngrok.io'):
@@ -42,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Third party
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     # Local
     'evaluations',
@@ -49,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -83,7 +89,9 @@ WSGI_APPLICATION = 'docentrack.wsgi.application'
 # ---------------------------------------------------------------------------
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        default=os.environ.get('DATABASE_URL', 'sqlite:///' + str(BASE_DIR / 'db.sqlite3')),
+        conn_max_age=600,
+        ssl_require=not DEBUG
     )
 }
 
@@ -114,16 +122,18 @@ USE_TZ = True
 # ---------------------------------------------------------------------------
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    'CORS_ALLOWED_ORIGINS', 
+    'http://localhost:5173,http://127.0.0.1:5173'
+).split(',')
+
 # Orígenes HTTPS con subdominio aleatorio (túneles). Complementa la lista anterior.
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r'^https://.*\.lhr\.life$',

@@ -1,0 +1,15 @@
+services:
+  - type: static
+    name: docentrack-frontend
+    runtime: node
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: VITE_API_URL
+        value: https://docentrack-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

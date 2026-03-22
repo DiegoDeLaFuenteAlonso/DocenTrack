@@ -1,5 +1,5 @@
 # ==========================================
-# GLOBAL - DocenTrack
+# DocenTrack - Global .gitignore
 # ==========================================
 
 # --- ENTORNOS VIRTUALES ---
@@ -8,18 +8,22 @@ backend/venv/
 backend/env/
 .venv/
 venv/
+env/
+ENV/
 
 # --- VARIABLES DE ENTORNO ---
 .env
 .env.local
 .env.production
 .env.development
+.env.*.local
 *.env
 !.env.example
 
 # --- BASES DE DATOS LOCALES ---
 *.sqlite3
 *.db
+*.sqlite3-journal
 
 # --- PYTHON / DJANGO ---
 __pycache__/
@@ -30,6 +34,11 @@ __pycache__/
 backend/staticfiles/
 backend/media/
 backend/local_settings.py
+backend/*.pyc
+backend/**/__pycache__/
+*.egg-info/
+dist/
+build/
 
 # --- NODE / REACT ---
 frontend/node_modules/
@@ -42,10 +51,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+frontend/coverage/
+frontend/.nyc_output/
 
 # --- LOGS ---
 *.log
 logs/
+*.log.*
 
 # --- IDEs Y EDITORES ---
 .vscode/*
@@ -55,6 +67,22 @@ logs/
 *.swo
 *~
 .DS_Store
+*.sublime-project
+*.sublime-workspace
 
 # --- SISTEMAS DE CONTROL ---
 .git/
+.gitattributes
+
+# --- DEPENDENCIAS ---
+*.lock
+# excepto package-lock.json y Pipfile.lock que SÍ deben ir
+!frontend/package-lock.json
+!backend/Pipfile.lock
+
+# --- ARCHIVOS TEMPORALES ---
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
