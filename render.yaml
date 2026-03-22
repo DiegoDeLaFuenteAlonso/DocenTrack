@@ -4,7 +4,7 @@ services:
     name: docentrack-api
     runtime: python
     plan: free
-    region: frankfurt  # oregon, frankfurt, singapore...
+    region: frankfurt
     rootDir: backend
     buildCommand: "./build.sh"
     startCommand: "gunicorn config.wsgi:application"
@@ -12,7 +12,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.10
       - key: SECRET_KEY
-        generateValue: true  # Render genera uno automático
+        generateValue: true
       - key: DEBUG
         value: false
       - key: DATABASE_URL
@@ -22,9 +22,8 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: "https://docentrack.onrender.com"
 
-  # Frontend Static Site
-  - type: static_site
-    name: docentrack
+staticSites:
+  - name: docentrack
     runtime: node
     plan: free
     region: frankfurt
