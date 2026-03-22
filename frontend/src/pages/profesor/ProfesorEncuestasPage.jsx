@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
 import { DOCENTRACK_REFRESH } from '../../utils/docentrackEvents';
-import { ClipboardList, ChevronRight, AlertCircle, Filter } from 'lucide-react';
+import { ClipboardList, ChevronRight, AlertCircle, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function ProfesorEncuestasPage() {
   const [encuestas, setEncuestas] = useState([]);
@@ -15,6 +15,7 @@ export default function ProfesorEncuestasPage() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [ordering, setOrdering] = useState('-created_at');
+  const [showFilters, setShowFilters] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -86,10 +87,18 @@ export default function ProfesorEncuestasPage() {
       </header>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
-        <div className="flex items-center gap-2 text-slate-700 font-semibold mb-4">
-          <Filter size={18} /> Filtros
+        <div 
+          className="flex items-center justify-between text-slate-700 font-semibold mb-4 cursor-pointer md:cursor-auto"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <div className="flex items-center gap-2">
+            <Filter size={18} /> Filtros
+          </div>
+          <div className="md:hidden">
+            {showFilters ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className={`${showFilters ? 'grid' : 'hidden'} md:grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4`}>
           <input
             type="search"
             placeholder="Buscar por nombre…"

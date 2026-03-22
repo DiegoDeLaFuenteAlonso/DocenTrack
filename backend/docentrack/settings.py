@@ -18,7 +18,16 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-insecure-key-for-dev')
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+def _split_hosts(value: str) -> list[str]:
+    return [h.strip() for h in value.split(',') if h.strip()]
+
+
+ALLOWED_HOSTS = _split_hosts(os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+# Túneles (localhost.run → *.lhr.life, localtunnel, etc.): coinciden como subdominio
+if DEBUG:
+    for suffix in ('.lhr.life', '.loca.lt', '.ngrok-free.app', '.ngrok.io'):
+        if suffix not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(suffix)
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +123,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+]
+# Orígenes HTTPS con subdominio aleatorio (túneles). Complementa la lista anterior.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://.*\.lhr\.life$',
+    r'^https://.*\.loca\.lt$',
+    r'^https://.*\.ngrok-free\.app$',
+    r'^https://.*\.ngrok\.io$',
 ]
 
 # ---------------------------------------------------------------------------

@@ -11,7 +11,7 @@ export default function AdminHomePage() {
         usando la API directamente.
       </p>
       <a
-        href="http://localhost:8000/admin/"
+        href="/admin/"
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
