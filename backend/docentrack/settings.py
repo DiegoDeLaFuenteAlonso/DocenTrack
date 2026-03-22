@@ -27,6 +27,11 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+# Render expone RENDER=true; el hostname del servicio es *.onrender.com.
+# Sin esto, Django responde 400 DisallowedHost y el navegador muestra error CORS en el preflight.
+if os.environ.get('RENDER') and '.onrender.com' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.onrender.com')
+
 # Túneles (localhost.run → *.lhr.life, localtunnel, etc.): coinciden como subdominio
 if DEBUG:
     for suffix in ('.lhr.life', '.loca.lt', '.ngrok-free.app', '.ngrok.io'):
@@ -143,6 +148,8 @@ CORS_ALLOWED_ORIGINS = _split_origins(
 
 # Orígenes HTTPS con subdominio aleatorio (túneles). Complementa la lista anterior.
 CORS_ALLOWED_ORIGIN_REGEXES = [
+    # Frontends en Render (Static Site) suelen ser https://*-web.onrender.com
+    r'^https://[\w.-]+\.onrender\.com$',
     r'^https://.*\.lhr\.life$',
     r'^https://.*\.loca\.lt$',
     r'^https://.*\.ngrok-free\.app$',

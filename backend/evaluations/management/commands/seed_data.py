@@ -6,6 +6,7 @@ Usage: python manage.py seed_data
 
 import random
 from datetime import date, timedelta
+from typing import Any, cast
 
 from django.contrib.auth.models import User  # type: ignore
 from django.core.management.base import BaseCommand  # type: ignore
@@ -23,11 +24,86 @@ from evaluations.models import (  # type: ignore
     UserProfile,
 )
 
+# Pyright no infiere el manager .objects en modelos Django
+_UserProfile = cast(Any, UserProfile)
+_Profesor = cast(Any, Profesor)
+_AsignaturaGrupo = cast(Any, AsignaturaGrupo)
+_MiembroClase = cast(Any, MiembroClase)
+_Encuesta = cast(Any, Encuesta)
+_EncuestaPregunta = cast(Any, EncuestaPregunta)
+_Pregunta = cast(Any, Pregunta)
+_CampanaEvaluacion = cast(Any, CampanaEvaluacion)
+_RegistroVoto = cast(Any, RegistroVoto)
+_Respuesta = cast(Any, Respuesta)
+
 
 class Command(BaseCommand):
     help = 'Seed the database with test data for DocenTrack'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force-passwords',
+            action='store_true',
+            help=(
+                'Restablece las contraseñas demo (admin123, profesor123, alumno123) '
+                'para usuarios ya existentes. Útil en producción si olvidaste la clave '
+                'o tras migraciones; no borra datos.'
+            ),
+        )
+
+    def _force_demo_passwords(self) -> None:
+        """Restablece solo contraseñas y perfiles demo; no duplica encuestas ni respuestas."""
+        self.stdout.write('Restableciendo contraseñas demo…')
+
+        admin_user, _ = User.objects.get_or_create(
+            username='admin',
+            defaults={
+                'first_name': 'Admin',
+                'last_name': 'DocenTrack',
+                'email': 'admin@docentrack.es',
+                'is_staff': True,
+                'is_superuser': True,
+            },
+        )
+        admin_user.set_password('admin123')
+        admin_user.save()
+        _UserProfile.objects.get_or_create(user=admin_user, defaults={'role': 'ADMIN'})
+
+        for uname in ('profesor1', 'profesor2'):
+            u, _ = User.objects.get_or_create(
+                username=uname,
+                defaults={
+                    'email': f'{uname}@docentrack.es',
+                },
+            )
+            u.set_password('profesor123')
+            u.save()
+            _UserProfile.objects.get_or_create(user=u, defaults={'role': 'PROFESOR'})
+
+        for i in range(1, 11):
+            uname = f'alumno{i}'
+            u, _ = User.objects.get_or_create(
+                username=uname,
+                defaults={
+                    'first_name': 'Alumno',
+                    'last_name': f'Prueba {i}',
+                    'email': f'{uname}@docentrack.es',
+                },
+            )
+            u.set_password('alumno123')
+            u.save()
+            _UserProfile.objects.get_or_create(user=u, defaults={'role': 'ALUMNO'})
+
+        style: Any = self.style
+        self.stdout.write(style.SUCCESS(
+            'Contraseñas demo actualizadas: admin/admin123, profesor*/profesor123, alumno*/alumno123'
+        ))
+
     def handle(self, *args, **options):
+        if options['force_passwords']:
+            self._force_demo_passwords()
+            return
+
         self.stdout.write('Seeding database...')
 
         # ── Admin ──────────────────────────────────
@@ -44,7 +120,7 @@ class Command(BaseCommand):
         if created:
             admin_user.set_password('admin123')
             admin_user.save()
-        UserProfile.objects.get_or_create(user=admin_user, defaults={'role': 'ADMIN'})
+        _UserProfile.objects.get_or_create(user=admin_user, defaults={'role': 'ADMIN'})
 
         # ── Profesores ─────────────────────────────
         profesores_data = [
@@ -64,8 +140,8 @@ class Command(BaseCommand):
             if created:
                 user.set_password('profesor123')
                 user.save()
-            UserProfile.objects.get_or_create(user=user, defaults={'role': 'PROFESOR'})
-            prof, _ = Profesor.objects.get_or_create(
+            _UserProfile.objects.get_or_create(user=user, defaults={'role': 'PROFESOR'})
+            prof, _ = _Profesor.objects.get_or_create(
                 user=user,
                 defaults={
                     'nombre': pd['nombre'],
@@ -85,7 +161,7 @@ class Command(BaseCommand):
         ]
         asignaturas = []
         for ad in asignaturas_data:
-            asig, _ = AsignaturaGrupo.objects.get_or_create(
+            asig, _ = _AsignaturaGrupo.objects.get_or_create(
                 nombre=ad['nombre'],
                 curso=ad['curso'],
                 grupo=ad['grupo'],
@@ -107,20 +183,20 @@ class Command(BaseCommand):
             if created:
                 user.set_password('alumno123')
                 user.save()
-            UserProfile.objects.get_or_create(user=user, defaults={'role': 'ALUMNO'})
+            _UserProfile.objects.get_or_create(user=user, defaults={'role': 'ALUMNO'})
             alumnos.append(user)
 
         today = date.today()
 
         # ── Matrícula en clase (nuevo flujo API) ──
         for alumno_user in alumnos[:5]:
-            MiembroClase.objects.get_or_create(
+            _MiembroClase.objects.get_or_create(
                 user=alumno_user,
                 asignatura_grupo=asignaturas[0],
             )
 
         # ── Encuesta de clase con preguntas propias ──
-        enc_clase, _ = Encuesta.objects.get_or_create(
+        enc_clase, _ = _Encuesta.objects.get_or_create(
             asignatura_grupo=asignaturas[0],
             nombre='Encuesta de satisfacción (clase)',
             defaults={
@@ -135,7 +211,7 @@ class Command(BaseCommand):
             '¿El ritmo de la clase es adecuado?',
         ]
         for idx, texto in enumerate(items_enc, 1):
-            EncuestaPregunta.objects.get_or_create(
+            _EncuestaPregunta.objects.get_or_create(
                 encuesta=enc_clase,
                 orden=idx,
                 defaults={'texto': texto},
@@ -154,7 +230,7 @@ class Command(BaseCommand):
         ]
         preguntas: list[Pregunta] = []
         for idx, texto in enumerate(preguntas_textos, 1):
-            preg, _ = Pregunta.objects.get_or_create(
+            preg, _ = _Pregunta.objects.get_or_create(
                 orden=idx,
                 defaults={'texto': texto},
             )
@@ -183,7 +259,7 @@ class Command(BaseCommand):
         ]
         campanas: list[CampanaEvaluacion] = []
         for cd in campanas_data:
-            camp, _ = CampanaEvaluacion.objects.get_or_create(
+            camp, _ = _CampanaEvaluacion.objects.get_or_create(
                 nombre=cd['nombre'],
                 defaults={
                     'fecha_inicio': cd['fecha_inicio'],
@@ -198,25 +274,26 @@ class Command(BaseCommand):
             for asig in asignaturas:
                 for alumno in alumnos[:7]:  # type: ignore
                     # Check if already voted
-                    if RegistroVoto.objects.filter(
+                    if _RegistroVoto.objects.filter(
                         user=alumno, campana=campana, asignatura_grupo=asig
                     ).exists():
                         continue
 
                     for pregunta in preguntas:
-                        Respuesta.objects.create(
+                        _Respuesta.objects.create(
                             asignatura_grupo=asig,
                             campana=campana,
                             pregunta=pregunta,
                             valor=random.randint(3, 5),
                         )
-                    RegistroVoto.objects.create(
+                    _RegistroVoto.objects.create(
                         user=alumno,
                         campana=campana,
                         asignatura_grupo=asig,
                     )
 
-        self.stdout.write(self.style.SUCCESS(
+        style: Any = self.style
+        self.stdout.write(style.SUCCESS(
             f'✓ Seed complete!\n'
             f'  Admin: admin / admin123\n'
             f'  Profesores: profesor1, profesor2 / profesor123\n'

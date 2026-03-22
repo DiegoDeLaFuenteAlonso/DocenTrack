@@ -35,7 +35,7 @@ staticSites:
       - key: NODE_VERSION
         value: 20
       - key: VITE_API_URL
-        value: "https://docentrack.onrender.com/api/"
+        value: "https://docentrack-api.onrender.com/api/"
     routes:
       - type: rewrite
         source: /*
