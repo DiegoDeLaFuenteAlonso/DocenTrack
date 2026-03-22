@@ -129,10 +129,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    'CORS_ALLOWED_ORIGINS', 
-    'http://localhost:5173,http://127.0.0.1:5173'
-).split(',')
+def _split_origins(value: str) -> list[str]:
+    """Comma-separated origins with optional spaces (Render/env típico)."""
+    return [o.strip().rstrip('/') for o in value.split(',') if o.strip()]
+
+
+CORS_ALLOWED_ORIGINS = _split_origins(
+    os.environ.get(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:5173,http://127.0.0.1:5173',
+    )
+)
 
 # Orígenes HTTPS con subdominio aleatorio (túneles). Complementa la lista anterior.
 CORS_ALLOWED_ORIGIN_REGEXES = [

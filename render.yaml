@@ -23,7 +23,8 @@ services:
         value: "https://docentrack-web.onrender.com"
 
 staticSites:
-  - name: docentrack
+  # Nombre alineado con la URL típica docentrack-web.onrender.com (ajusta si tu servicio tiene otro nombre)
+  - name: docentrack-web
     runtime: node
     plan: free
     region: frankfurt
@@ -34,7 +35,7 @@ staticSites:
       - key: NODE_VERSION
         value: 20
       - key: VITE_API_URL
-        value: "https://docentrack.onrender.com/api"
+        value: "https://docentrack.onrender.com/api/"
     routes:
       - type: rewrite
         source: /*
