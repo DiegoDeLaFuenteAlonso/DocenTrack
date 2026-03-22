@@ -1,0 +1,87 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# backend/.gitignore
+.env
+.env.local
+*.sqlite3
+__pycache__/
+.venv
+
+
+# --- PYTHON / DJANGO ---
+# Entornos virtuales (Nunca commitar la carpeta venv)
+venv/
+.venv/
+env/
+ENV/
+
+# Base de datos SQLite (Tu base de datos local no debe subirse a GitHub)
+db.sqlite3
+db.sqlite3-journal
+
+# Archivos de caché y compilación de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Archivos de configuración secretos (Contraseñas, Claves API)
+.env
+.env.local
+
+# Logs del servidor
+*.log
+
+# --- NODE / REACT ---
+# Dependencias de Node (Carpetas gigantes, se instalan con npm install)
+node_modules/
+
+# Build de producción (Código generado, se crea al hacer npm run build)
+dist/
+build/
+
+# Logs y caché de NPM
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variables de entorno de React
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- SISTEMA OPERATIVO E IDES ---
+# Archivos basura de Mac
+.DS_Store
+
+# Archivos basura de Windows
+Thumbs.db
+
+# Configuraciones personales de VS Code
+.vscode/
+.cursor/
