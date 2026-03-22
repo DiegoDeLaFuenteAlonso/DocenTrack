@@ -7,7 +7,7 @@ services:
     region: frankfurt
     rootDir: backend
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application"
+    startCommand: "gunicorn docentrack.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.10
