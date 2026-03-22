@@ -23,7 +23,7 @@ services:
         value: "https://docentrack.onrender.com"
 
   # Frontend Static Site
-  - type: static
+  - type: static_site
     name: docentrack
     runtime: node
     plan: free
