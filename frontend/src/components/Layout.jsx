@@ -41,7 +41,7 @@ const Layout = () => {
     if (!isMobile || !mainRef.current) return;
     setShowTopbar(true);
     if (topbarTimer.current) clearTimeout(topbarTimer.current);
-    
+
     topbarTimer.current = setTimeout(() => {
       if (mainRef.current && mainRef.current.scrollTop >= 20) {
         setShowTopbar(false);
@@ -56,7 +56,11 @@ const Layout = () => {
 
   const role = user?.profile?.role;
   const homePath =
-    role === 'ALUMNO' ? '/alumno' : role === 'PROFESOR' ? '/profesor/clases' : '/admin/inicio';
+    role === 'ALUMNO'
+      ? '/alumno'
+      : role === 'PROFESOR'
+        ? '/profesor'
+        : '/admin/inicio';
 
   useEffect(() => {
     const onResize = () => {
@@ -91,7 +95,10 @@ const Layout = () => {
         }`}
         title={collapsed ? label : undefined}
       >
-        <Icon size={20} className={isActive ? 'text-indigo-200' : 'text-slate-400'} />
+        <Icon
+          size={20}
+          className={isActive ? 'text-indigo-200' : 'text-slate-400'}
+        />
         {!collapsed && <span className="font-medium">{label}</span>}
       </Link>
     );
@@ -124,7 +131,9 @@ const Layout = () => {
           {!collapsed && (
             <div>
               <h1 className="text-xl font-bold tracking-tight">DocenTrack</h1>
-              <p className="text-xs text-indigo-300 font-medium">Evaluacion Docente</p>
+              <p className="text-xs text-indigo-300 font-medium">
+                Evaluacion Docente
+              </p>
             </div>
           )}
         </button>
@@ -161,12 +170,21 @@ const Layout = () => {
         {role === 'PROFESOR' && (
           <>
             {renderNavItem('/profesor/clases', BookOpen, 'Mis clases')}
-            {renderNavItem('/profesor/encuestas', ClipboardList, 'Mis encuestas')}
-            {renderNavItem('/profesor/dashboard', BarChart3, 'Analitica global')}
+            {renderNavItem(
+              '/profesor/encuestas',
+              ClipboardList,
+              'Mis encuestas',
+            )}
+            {renderNavItem(
+              '/profesor/dashboard',
+              BarChart3,
+              'Analitica global',
+            )}
           </>
         )}
 
-        {role === 'ADMIN' && renderNavItem('/admin/inicio', Settings, 'Administracion')}
+        {role === 'ADMIN' &&
+          renderNavItem('/admin/inicio', Settings, 'Administracion')}
       </nav>
 
       <div className="p-6 border-t border-slate-800 bg-slate-900/50">
@@ -194,7 +212,9 @@ const Layout = () => {
           </button>
         )}
 
-        <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'} mb-6`}>
+        <div
+          className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'} mb-6`}
+        >
           <div className="bg-slate-800 p-2 rounded-full border border-slate-700">
             <UserCircle size={24} className="text-indigo-400" />
           </div>
@@ -202,7 +222,9 @@ const Layout = () => {
             <p className="text-sm font-semibold text-white truncate">
               {user?.first_name} {user?.last_name}
             </p>
-            <p className="text-xs text-slate-400 truncate">Rol: {user?.profile?.role}</p>
+            <p className="text-xs text-slate-400 truncate">
+              Rol: {user?.profile?.role}
+            </p>
           </div>
         </div>
         <button
@@ -246,12 +268,16 @@ const Layout = () => {
               <div className="bg-indigo-600 p-1.5 rounded-md">
                 <BookOpen size={16} className="text-white" />
               </div>
-              <span className="text-lg font-bold tracking-tight">DocenTrack</span>
+              <span className="text-lg font-bold tracking-tight">
+                DocenTrack
+              </span>
             </div>
           </div>
           <div
             className={`fixed inset-0 z-40 bg-slate-950/60 transition-opacity ${
-              mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+              mobileOpen
+                ? 'opacity-100 pointer-events-auto'
+                : 'opacity-0 pointer-events-none'
             }`}
             onClick={() => setMobileOpen(false)}
           />
@@ -279,8 +305,10 @@ const Layout = () => {
         onTouchStart={handleUserActivity}
         className="flex-1 overflow-y-auto w-full relative"
       >
-        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-indigo-50/50 to-transparent pointer-events-none -z-10" />
-        <div className={`max-w-7xl mx-auto min-h-full ${isMobile ? 'pt-20 px-4 pb-8' : 'p-8 md:p-12'}`}>
+        <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-b from-indigo-50/50 to-transparent pointer-events-none -z-10" />
+        <div
+          className={`max-w-7xl mx-auto min-h-full ${isMobile ? 'pt-20 px-4 pb-8' : 'p-8 md:p-12'}`}
+        >
           <Outlet />
         </div>
       </main>

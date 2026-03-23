@@ -2,7 +2,14 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api from '../../api';
 import { DOCENTRACK_REFRESH } from '../../utils/docentrackEvents';
-import { ArrowLeft, ClipboardList, ChevronRight, AlertCircle, Filter } from 'lucide-react';
+import { markProfesorClaseVisited } from '../../utils/profesorActivity';
+import {
+  ArrowLeft,
+  ClipboardList,
+  ChevronRight,
+  AlertCircle,
+  Filter,
+} from 'lucide-react';
 
 export default function ProfesorClaseDetailPage() {
   const { claseId } = useParams();
@@ -24,7 +31,9 @@ export default function ProfesorClaseDetailPage() {
     ])
       .then(([cRes, eRes]) => {
         setClase(cRes.data);
-        const list = Array.isArray(eRes.data) ? eRes.data : eRes.data.results || [];
+        const list = Array.isArray(eRes.data)
+          ? eRes.data
+          : eRes.data.results || [];
         setEncuestas(list);
         setError(null);
       })
@@ -35,6 +44,10 @@ export default function ProfesorClaseDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    markProfesorClaseVisited(Number(claseId));
+  }, [claseId]);
 
   useEffect(() => {
     const h = () => load();
@@ -81,7 +94,9 @@ export default function ProfesorClaseDetailPage() {
       </Link>
 
       <header className="mb-8">
-        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">{clase.nombre}</h1>
+        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+          {clase.nombre}
+        </h1>
         <p className="text-slate-500 text-lg">
           {clase.curso} · Grupo {clase.grupo}
         </p>
@@ -125,7 +140,9 @@ export default function ProfesorClaseDetailPage() {
         </div>
       </div>
 
-      <h2 className="text-xl font-bold text-slate-800 mb-4">Encuestas de esta clase</h2>
+      <h2 className="text-xl font-bold text-slate-800 mb-4">
+        Encuestas de esta clase
+      </h2>
 
       {filtradas.length === 0 ? (
         <div className="bg-slate-50 rounded-2xl p-10 text-center border border-slate-200 text-slate-600">
@@ -149,7 +166,9 @@ export default function ProfesorClaseDetailPage() {
                     {e.fecha_inicio} → {e.fecha_fin}{' '}
                     <span
                       className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
-                        e.activa ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                        e.activa
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-slate-100 text-slate-600'
                       }`}
                     >
                       {e.activa ? 'Activa' : 'Inactiva'}

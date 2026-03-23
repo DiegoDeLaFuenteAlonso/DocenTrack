@@ -144,6 +144,8 @@ class Encuesta(models.Model):
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
     activa = models.BooleanField(default=True)  # pyright: ignore[reportArgumentType]
+    finalizada = models.BooleanField(default=False)  # pyright: ignore[reportArgumentType]
+    eliminada = models.BooleanField(default=False)  # pyright: ignore[reportArgumentType]
 
     class Meta:
         verbose_name = 'Encuesta de clase'

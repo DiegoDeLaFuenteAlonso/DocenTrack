@@ -28,13 +28,24 @@ export default function AlumnoEncuestaClasePage() {
       .finally(() => setLoading(false));
   }, [encuestaId]);
 
-  const items = encuesta?.items ? [...encuesta.items].sort((a, b) => (a.orden || 0) - (b.orden || 0)) : [];
+  const items = encuesta?.items
+    ? [...encuesta.items].sort((a, b) => (a.orden || 0) - (b.orden || 0))
+    : [];
   const enPlazo = encuesta ? encuestaEnPlazo(encuesta) : false;
+  const estadoPublicacion =
+    encuesta?.estado_publicacion ||
+    (encuesta?.finalizada
+      ? 'FINALIZADA'
+      : encuesta?.activa
+        ? 'ACTIVA'
+        : 'INACTIVA');
 
   const handleOptionChange = (preguntaId, valor) => {
     setRespuestas((prev) => {
       const next = { ...prev, [preguntaId]: valor };
-      api.put(`encuestas-clase/${encuestaId}/progreso/`, { respuestas: next }).catch(() => {});
+      api
+        .put(`encuestas-clase/${encuestaId}/progreso/`, { respuestas: next })
+        .catch(() => {});
       return next;
     });
   };
@@ -93,14 +104,22 @@ export default function AlumnoEncuestaClasePage() {
         </Link>
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-10 text-center">
           <CheckCircle className="mx-auto text-emerald-600 mb-4" size={56} />
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Ya has respondido</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            Ya has respondido
+          </h1>
           <p className="text-slate-600">{encuesta.nombre}</p>
         </div>
       </div>
     );
   }
 
-  if (!encuesta.activa || !enPlazo) {
+  if (estadoPublicacion !== 'ACTIVA' || !enPlazo) {
+    const motivo =
+      estadoPublicacion === 'FINALIZADA'
+        ? 'Esta encuesta ya está finalizada y no admite nuevas respuestas.'
+        : estadoPublicacion === 'INACTIVA'
+          ? 'Esta encuesta está inactiva temporalmente y no está disponible para responder.'
+          : `Esta encuesta está fuera del periodo de respuesta (${encuesta.fecha_inicio} — ${encuesta.fecha_fin}).`;
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
         <Link
@@ -110,11 +129,10 @@ export default function AlumnoEncuestaClasePage() {
           <ChevronLeft size={20} /> Volver
         </Link>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8">
-          <h1 className="text-xl font-bold text-slate-900 mb-2">Encuesta no disponible</h1>
-          <p className="text-slate-600">
-            Esta encuesta está inactiva o fuera del periodo de respuesta ({encuesta.fecha_inicio} —{' '}
-            {encuesta.fecha_fin}).
-          </p>
+          <h1 className="text-xl font-bold text-slate-900 mb-2">
+            Encuesta no disponible
+          </h1>
+          <p className="text-slate-600">{motivo}</p>
         </div>
       </div>
     );
@@ -123,16 +141,23 @@ export default function AlumnoEncuestaClasePage() {
   if (items.length === 0) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Link to="/alumno" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-6">
+        <Link
+          to="/alumno"
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-6"
+        >
           <ChevronLeft size={20} /> Volver
         </Link>
-        <p className="text-slate-600">El profesor aún no ha añadido preguntas a esta encuesta.</p>
+        <p className="text-slate-600">
+          El profesor aún no ha añadido preguntas a esta encuesta.
+        </p>
       </div>
     );
   }
 
   const answeredCount = Object.keys(respuestas).length;
-  const progressPercent = items.length ? (answeredCount / items.length) * 100 : 0;
+  const progressPercent = items.length
+    ? (answeredCount / items.length) * 100
+    : 0;
 
   return (
     <div className="max-w-4xl mx-auto pb-24 animate-fade-in">
@@ -146,9 +171,12 @@ export default function AlumnoEncuestaClasePage() {
       </button>
 
       <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-slate-200 mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 mb-2">{encuesta.nombre}</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
+          {encuesta.nombre}
+        </h1>
         <p className="text-slate-600 text-lg leading-relaxed mb-4">
-          Evalúa del <strong>1</strong> al <strong>5</strong>. Tus respuestas se guardan de forma anónima.
+          Evalúa del <strong>1</strong> al <strong>5</strong>. Tus respuestas se
+          guardan de forma anónima.
         </p>
         <div className="w-full bg-slate-100 rounded-full h-3 mb-2">
           <div
@@ -175,7 +203,9 @@ export default function AlumnoEncuestaClasePage() {
             <div
               key={p.id}
               className={`bg-white p-6 md:p-8 rounded-2xl border transition-all ${
-                isAnswered ? 'border-indigo-200 shadow-md bg-indigo-50/10' : 'border-slate-200 shadow-sm'
+                isAnswered
+                  ? 'border-indigo-200 shadow-md bg-indigo-50/10'
+                  : 'border-slate-200 shadow-sm'
               }`}
             >
               <h3 className="text-xl font-semibold text-slate-800 mb-6">

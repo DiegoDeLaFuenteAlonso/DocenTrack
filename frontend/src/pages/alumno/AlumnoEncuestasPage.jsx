@@ -1,7 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
-import { ClipboardList, ChevronRight, AlertCircle, Filter, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  ClipboardList,
+  ChevronRight,
+  AlertCircle,
+  Filter,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { encuestaEnPlazo } from '../../utils/surveyDates';
 
 export default function AlumnoEncuestasPage() {
@@ -23,11 +31,18 @@ export default function AlumnoEncuestasPage() {
     if (fromDate) params.from = fromDate;
     if (toDate) params.to = toDate;
     if (ordering) params.ordering = ordering;
-    Promise.all([api.get('encuestas-clase/', { params }), api.get('mis-clases/')])
+    Promise.all([
+      api.get('encuestas-clase/', { params }),
+      api.get('mis-clases/'),
+    ])
       .then(([eRes, cRes]) => {
-        const list = Array.isArray(eRes.data) ? eRes.data : eRes.data.results || [];
+        const list = Array.isArray(eRes.data)
+          ? eRes.data
+          : eRes.data.results || [];
         setEncuestas(list);
-        const clases = Array.isArray(cRes.data) ? cRes.data : cRes.data.results || [];
+        const clases = Array.isArray(cRes.data)
+          ? cRes.data
+          : cRes.data.results || [];
         const m = {};
         clases.forEach((c) => {
           m[c.id] = c;
@@ -42,7 +57,8 @@ export default function AlumnoEncuestasPage() {
   const filtradas = useMemo(() => {
     return encuestas.filter((e) => {
       if (q && !e.nombre?.toLowerCase().includes(q.toLowerCase())) return false;
-      if (claseFilter && String(e.asignatura_grupo) !== claseFilter) return false;
+      if (claseFilter && String(e.asignatura_grupo) !== claseFilter)
+        return false;
       const enPlazo = encuestaEnPlazo(e);
       const pendiente = !e.ya_respondido && enPlazo;
       if (estado === 'pendientes' && !pendiente) return false;
@@ -75,12 +91,14 @@ export default function AlumnoEncuestasPage() {
   return (
     <div className="animate-fade-in pb-12">
       <header className="mb-8">
-        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Encuestas</h1>
+        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+          Encuestas
+        </h1>
         <p className="text-slate-500 text-lg">Listado completo con estado.</p>
       </header>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
-        <div 
+        <div
           className="flex items-center justify-between text-slate-700 font-semibold mb-4 cursor-pointer md:cursor-auto"
           onClick={() => setShowFilters(!showFilters)}
         >
@@ -91,7 +109,9 @@ export default function AlumnoEncuestasPage() {
             {showFilters ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </div>
         </div>
-        <div className={`${showFilters ? 'grid' : 'hidden'} md:grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4`}>
+        <div
+          className={`${showFilters ? 'grid' : 'hidden'} md:grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4`}
+        >
           <input
             type="search"
             placeholder="Buscar…"
@@ -151,8 +171,16 @@ export default function AlumnoEncuestasPage() {
       <div className="space-y-3">
         {filtradas.map((e) => {
           const c = clasesMap[e.asignatura_grupo];
+          const estadoPublicacion =
+            e.estado_publicacion ||
+            (e.finalizada ? 'FINALIZADA' : e.activa ? 'ACTIVA' : 'INACTIVA');
           const enPlazo = encuestaEnPlazo(e);
-          const puede = !e.ya_respondido && enPlazo;
+          const puedeResponder =
+            estadoPublicacion === 'ACTIVA' && !e.ya_respondido && enPlazo;
+          const puedeVer =
+            e.ya_respondido ||
+            estadoPublicacion === 'FINALIZADA' ||
+            puedeResponder;
           return (
             <div
               key={e.id}
@@ -163,7 +191,9 @@ export default function AlumnoEncuestasPage() {
                   <ClipboardList size={22} />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-slate-900 truncate">{e.nombre}</p>
+                  <p className="font-bold text-slate-900 truncate">
+                    {e.nombre}
+                  </p>
                   <p className="text-sm text-slate-500 truncate">
                     {c?.nombre} · {e.fecha_inicio} — {e.fecha_fin}
                   </p>
@@ -175,16 +205,20 @@ export default function AlumnoEncuestasPage() {
                     <CheckCircle size={18} /> Hecha
                   </span>
                 ) : e.estado_encuesta === 'EN_CURSO' ? (
-                  <span className="text-amber-700 text-sm font-medium">A medias</span>
+                  <span className="text-amber-700 text-sm font-medium">
+                    A medias
+                  </span>
                 ) : (
-                  <span className="text-amber-700 text-sm font-medium">Pendiente</span>
+                  <span className="text-amber-700 text-sm font-medium">
+                    Pendiente
+                  </span>
                 )}
-                {(e.ya_respondido || puede) && (
+                {puedeVer && (
                   <Link
                     to={`/alumno/encuestas/${e.id}`}
                     className="inline-flex items-center gap-1 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700"
                   >
-                    {e.ya_respondido ? 'Ver' : 'Responder'}
+                    {puedeResponder ? 'Responder' : 'Ver'}
                     <ChevronRight size={16} />
                   </Link>
                 )}

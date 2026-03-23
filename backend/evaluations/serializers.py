@@ -21,6 +21,14 @@ from .models import (
 from .permissions import is_admin, owns_clase
 
 
+def _estado_publicacion_encuesta(obj: Encuesta) -> str:
+    if obj.finalizada:
+        return 'FINALIZADA'
+    if obj.activa:
+        return 'ACTIVA'
+    return 'INACTIVA'
+
+
 # ──────────────────────────────────────────────────────────
 # Auth / User
 # ──────────────────────────────────────────────────────────
@@ -69,6 +77,9 @@ class AsignaturaGrupoSerializer(serializers.ModelSerializer):
             'codigo_invitacion',
         ]
         read_only_fields = ['codigo_invitacion']
+        extra_kwargs = {
+            'profesor': {'required': False},
+        }
 
     def get_profesor_nombre(self, obj: AsignaturaGrupo) -> str:
         return str(obj.profesor)
@@ -160,12 +171,59 @@ class EncuestaPreguntaSerializer(serializers.ModelSerializer):
         fields = ['id', 'encuesta', 'texto', 'orden']
 
 
+class EncuestaPreguntaCreateSerializer(serializers.Serializer):
+    texto = serializers.CharField(trim_whitespace=True)
+    orden = serializers.IntegerField(required=False, min_value=1)
+
+
+class EncuestaCreateWithItemsSerializer(serializers.Serializer):
+    asignatura_grupo = serializers.IntegerField(min_value=1)
+    nombre = serializers.CharField(trim_whitespace=True, max_length=200)
+    fecha_inicio = serializers.DateField()
+    fecha_fin = serializers.DateField()
+    activa = serializers.BooleanField(required=False, default=True)
+    preguntas = EncuestaPreguntaCreateSerializer(many=True, min_length=1)
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        if attrs['fecha_fin'] < attrs['fecha_inicio']:
+            raise serializers.ValidationError(
+                {'fecha_fin': 'La fecha de fin debe ser mayor o igual a la fecha de inicio.'}
+            )
+
+        preguntas = attrs['preguntas']
+        seen: set[int] = set()
+        auto_order = 1
+        normalizadas: list[dict[str, Any]] = []
+        for item in preguntas:
+            texto = str(item.get('texto', '')).strip()
+            if not texto:
+                raise serializers.ValidationError(
+                    {'preguntas': 'Cada pregunta debe tener texto.'}
+                )
+            orden = item.get('orden')
+            if orden is None:
+                while auto_order in seen:
+                    auto_order += 1
+                orden = auto_order
+                auto_order += 1
+            if orden in seen:
+                raise serializers.ValidationError(
+                    {'preguntas': 'No puede haber preguntas con el mismo orden.'}
+                )
+            seen.add(int(orden))
+            normalizadas.append({'texto': texto, 'orden': int(orden)})
+
+        attrs['preguntas'] = normalizadas
+        return attrs
+
+
 class EncuestaListSerializer(serializers.ModelSerializer):
     """Listado con estado para el alumno (pendiente / realizada)."""
 
     ya_respondido = serializers.SerializerMethodField()
     num_preguntas = serializers.SerializerMethodField()
     estado_encuesta = serializers.SerializerMethodField()
+    estado_publicacion = serializers.SerializerMethodField()
 
     class Meta:
         model = Encuesta
@@ -177,9 +235,11 @@ class EncuestaListSerializer(serializers.ModelSerializer):
             'fecha_inicio',
             'fecha_fin',
             'activa',
+            'finalizada',
             'created_at',
             'ya_respondido',
             'estado_encuesta',
+            'estado_publicacion',
             'num_preguntas',
         ]
 
@@ -211,6 +271,9 @@ class EncuestaListSerializer(serializers.ModelSerializer):
         if progreso:
             return progreso.estado
         return ProgresoEncuestaAlumno.ESTADO_PENDIENTE
+
+    def get_estado_publicacion(self, obj: Encuesta) -> str:
+        return _estado_publicacion_encuesta(obj)
 
 
 class EncuestaDetailSerializer(serializers.ModelSerializer):
@@ -218,6 +281,7 @@ class EncuestaDetailSerializer(serializers.ModelSerializer):
     ya_respondido = serializers.SerializerMethodField()
     num_preguntas = serializers.SerializerMethodField()
     estado_encuesta = serializers.SerializerMethodField()
+    estado_publicacion = serializers.SerializerMethodField()
 
     class Meta:
         model = Encuesta
@@ -229,10 +293,12 @@ class EncuestaDetailSerializer(serializers.ModelSerializer):
             'fecha_inicio',
             'fecha_fin',
             'activa',
+            'finalizada',
             'created_at',
             'items',
             'ya_respondido',
             'estado_encuesta',
+            'estado_publicacion',
             'num_preguntas',
         ]
 
@@ -264,6 +330,9 @@ class EncuestaDetailSerializer(serializers.ModelSerializer):
         if progreso:
             return progreso.estado
         return ProgresoEncuestaAlumno.ESTADO_PENDIENTE
+
+    def get_estado_publicacion(self, obj: Encuesta) -> str:
+        return _estado_publicacion_encuesta(obj)
 
 
 class ClaseRespuestaItemSerializer(serializers.Serializer):
@@ -278,6 +347,23 @@ class ClaseSurveySubmitSerializer(serializers.Serializer):
 
 class ClaseAddAlumnoSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(min_value=1)
+
+
+class EncuestaBulkActionSerializer(serializers.Serializer):
+    ACTION_ACTIVATE = 'activate'
+    ACTION_DEACTIVATE = 'deactivate'
+    ACTION_DELETE = 'delete'
+    ACTION_CHOICES = [
+        (ACTION_ACTIVATE, 'Activate'),
+        (ACTION_DEACTIVATE, 'Deactivate'),
+        (ACTION_DELETE, 'Soft delete'),
+    ]
+
+    encuesta_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        min_length=1,
+    )
+    action = serializers.ChoiceField(choices=ACTION_CHOICES)
 
 
 class ProgresoEncuestaAlumnoSerializer(serializers.ModelSerializer):

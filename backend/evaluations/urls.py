@@ -18,6 +18,8 @@ router.register(
 )
 
 urlpatterns: List[Any] = [
+    path('encuestas-clase/crear-completa/', views.crear_encuesta_completa, name='crear_encuesta_completa'),
+    path('encuestas-clase/bulk-action/', views.encuestas_bulk_action, name='encuestas_bulk_action'),
     path(
         'encuestas-clase/<int:encuesta_id>/resumen/',
         views.resumen_encuesta_clase,
