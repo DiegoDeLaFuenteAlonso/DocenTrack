@@ -5,7 +5,7 @@
 | Componente | Ejemplo de URL |
 |------------|----------------|
 | Frontend (Static Site) | `https://docentrack-web.onrender.com` |
-| API (Web Service) | `https://docentrack-api.onrender.com` |
+| API (Web Service) | `https://docentrack.onrender.com` |
 | PostgreSQL | Variable `DATABASE_URL` en el servicio API |
 
 Ajusta los nombres si tus servicios en Render tienen otros subdominios.
@@ -82,7 +82,7 @@ Sustituye las URLs si las tuyas son distintas.
 **Salud del servicio (sin CORS):**
 
 ```bash
-curl -sS -o /dev/null -w "%{http_code}" https://docentrack-api.onrender.com/api/token/
+curl -sS -o /dev/null -w "%{http_code}" https://docentrack.onrender.com/api/token/
 ```
 
 Debería devolver **405** (Method Not Allowed) o **400** — significa que el servidor Django está vivo. Si da **000** o timeout, el servicio está dormido o caído (espera y reintenta en el plan gratuito).
@@ -90,7 +90,7 @@ Debería devolver **405** (Method Not Allowed) o **400** — significa que el se
 **Preflight CORS (lo que hace el navegador antes del login):**
 
 ```bash
-curl -sS -D - -o /dev/null -X OPTIONS "https://docentrack-api.onrender.com/api/token/" ^
+curl -sS -D - -o /dev/null -X OPTIONS "https://docentrack.onrender.com/api/token/" ^
   -H "Origin: https://docentrack-web.onrender.com" ^
   -H "Access-Control-Request-Method: POST" ^
   -H "Access-Control-Request-Headers: content-type,authorization"
@@ -99,7 +99,7 @@ curl -sS -D - -o /dev/null -X OPTIONS "https://docentrack-api.onrender.com/api/t
 En **Windows PowerShell** usa comillas simples o `curl.exe` y cabeceras sin `^`:
 
 ```powershell
-curl.exe -sS -D - -o NUL -X OPTIONS "https://docentrack-api.onrender.com/api/token/" `
+curl.exe -sS -D - -o NUL -X OPTIONS "https://docentrack.onrender.com/api/token/" `
   -H "Origin: https://docentrack-web.onrender.com" `
   -H "Access-Control-Request-Method: POST" `
   -H "Access-Control-Request-Headers: content-type,authorization"
@@ -110,7 +110,7 @@ Debes ver en la respuesta algo como: `access-control-allow-origin: https://docen
 **Login real (POST):**
 
 ```bash
-curl -sS -X POST "https://docentrack-api.onrender.com/api/token/" ^
+curl -sS -X POST "https://docentrack.onrender.com/api/token/" ^
   -H "Content-Type: application/json" ^
   -H "Origin: https://docentrack-web.onrender.com" ^
   -d "{\"username\":\"alumno1\",\"password\":\"alumno123\"}"
@@ -139,7 +139,7 @@ No es la causa más habitual: `seed_data` **no cambia** las contraseñas de usua
 ### Otras causas frecuentes de 401
 
 1. **Credenciales**: en producción no son las de tu SQLite local. Usa `alumno1` / `alumno123` (u otras del seed) o restablece con el comando de abajo.
-2. **`CORS_ALLOWED_ORIGINS`** o **`VITE_API_URL`** cambiados o mal escritos (URL del frontend/API). El frontend debe apuntar al **mismo host** que la URL pública del Web Service (ej. `https://docentrack-api.onrender.com/api/`), no a otro subdominio antiguo.
+2. **`CORS_ALLOWED_ORIGINS`** o **`VITE_API_URL`** cambiados o mal escritos (URL del frontend/API). El frontend debe apuntar al **mismo host** que la URL pública del Web Service (ej. `https://docentrack.onrender.com/api/`), no a otro subdominio antiguo.
 3. **Frontend sin rebuild** tras cambiar `VITE_*` (esas variables se inyectan en **build**).
 4. **Error “blocked by CORS policy” / sin `Access-Control-Allow-Origin`**: a menudo es **`DisallowedHost`** en Django (host del API no permitido). El código añade `.onrender.com` en `ALLOWED_HOSTS` cuando existe la variable de entorno `RENDER` (Render la define automáticamente). Tras actualizar `settings.py`, **vuelve a desplegar el servicio API**.
 4. **Base de datos nueva o vacía** tras un reset.
